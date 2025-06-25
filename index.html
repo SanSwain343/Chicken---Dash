@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chicken Jump Game</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background-color: #d0f0c0;
+    }
+    #gameArea {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-color: #87ceeb;
+      overflow: hidden;
+    }
+    #chicken {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      font-size: 40px;
+      left: 50px;
+      bottom: 80px;
+      transform: scaleX(1);
+    }
+    .wall {
+      position: absolute;
+      width: 50px;
+      height: 100px;
+      background-color: brown;
+      bottom: 0;
+      animation: moveWall 3s linear infinite;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 18px;
+      background: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    #jumpBtn {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      z-index: 10;
+    }
+    @keyframes moveWall {
+      0% {
+        left: 100%;
+      }
+      100% {
+        left: -100px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameArea">
+    <div id="score">Score: 0 | High Score: 0</div>
+    <div id="chicken">🐔</div>
+    <div class="wall" id="wall"></div>
+    <button id="jumpBtn">JUMP</button>
+  </div>
+  <script>
+    const chicken = document.getElementById("chicken");
+    const wall = document.getElementById("wall");
+    const scoreDisplay = document.getElementById("score");
+
+    let jumping = false;
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
+    let jumpSpeed = 20;
+    let bottomPosition = 80;
+    let chickenIsJumpingOverWall = false;
+
+    scoreDisplay.innerText = `Score: ${score} | High Score: ${highScore}`;
+
+    wall.addEventListener("animationiteration", () => {
+      score++;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+      }
+      scoreDisplay.innerText = `Score: ${score} | High Score: ${highScore}`;
+      wall.style.left = '100%';
+      chickenIsJumpingOverWall = false;
+    });
+
+    document.getElementById("jumpBtn").addEventListener("click", () => {
+      if (jumping) return;
+      jumping = true;
+      chickenIsJumpingOverWall = true;
+      let jumpCount = 0;
+      const jumpInterval = setInterval(() => {
+        if (jumpCount < 15) {
+          bottomPosition += jumpSpeed;
+        } else {
+          bottomPosition = Math.max(80, bottomPosition - jumpSpeed);
+        }
+        chicken.style.bottom = bottomPosition + "px";
+        jumpCount++;
+        if (jumpCount > 30) {
+          clearInterval(jumpInterval);
+          jumping = false;
+        }
+      }, 20);
+    });
+
+    function detectCollision() {
+      const chickenRect = chicken.getBoundingClientRect();
+      const wallRect = wall.getBoundingClientRect();
+
+      const collision = !(
+        chickenRect.top > wallRect.bottom ||
+        chickenRect.bottom < wallRect.top ||
+        chickenRect.right < wallRect.left ||
+        chickenRect.left > wallRect.right
+      );
+
+      if (collision && !chickenIsJumpingOverWall) {
+        alert("Game Over");
+        restartGame();
+      }
+    }
+
+    setInterval(detectCollision, 10);
+
+    function restartGame() {
+      score = 0;
+      bottomPosition = 80;
+      chicken.style.bottom = bottomPosition + "px";
+      scoreDisplay.innerText = `Score: ${score} | High Score: ${highScore}`;
+      chickenIsJumpingOverWall = false;
+    }
+  </script>
+</body>
+</html>
