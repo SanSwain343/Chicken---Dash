@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chicken Dash</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #b3e5fc;
+    }
+    h2 {
+      padding: 10px;
+    }
+    #gameArea {
+      position: relative;
+      width: 90vw;
+      max-width: 500px;
+      height: 300px;
+      margin: auto;
+      border: 3px solid #444;
+      overflow: hidden;
+      background: linear-gradient(#81d4fa, #4fc3f7);
+    }
+    #ground {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 60px;
+      background: #222;
+    }
+    #chicken {
+      position: absolute;
+      bottom: 60px;
+      left: 10px;
+      font-size: 40px;
+      transform: scaleX(-1); /* Face right */
+      transition: bottom 0.3s, left 0.3s;
+    }
+    .hole {
+      position: absolute;
+      bottom: 0;
+      width: 50px;
+      height: 60px;
+      background: transparent;
+    }
+    #jumpBtn, #restartBtn {
+      margin-top: 20px;
+      padding: 15px 30px;
+      font-size: 20px;
+      background: #f44336;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+    #scoreboard {
+      font-size: 18px;
+      margin-top: -10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>"If you fall in life, don’t quit — jump back stronger. Even chickens know that." — San</h2>
+  <div id="scoreboard">Score: 0 | High Score: 0</div>
+
+  <div id="gameArea">
+    <div id="chicken">🐔</div>
+    <div id="ground"></div>
+  </div>
+
+  <button id="jumpBtn">JUMP</button>
+  <button id="restartBtn" onclick="location.reload()">RESTART</button>
+
+  <script>
+    const chicken = document.getElementById("chicken");
+    const gameArea = document.getElementById("gameArea");
+    const scoreboard = document.getElementById("scoreboard");
+    const jumpBtn = document.getElementById("jumpBtn");
+
+    let isJumping = false;
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
+    let holeInterval = null;
+
+    function updateScore() {
+      scoreboard.innerText = `Score: ${score} | High Score: ${highScore}`;
+    }
+
+    function jump() {
+      if (isJumping) return;
+      isJumping = true;
+      const jumpHeight = 120;
+      const moveForward = 40;
+
+      let currentLeft = parseInt(chicken.style.left || "10");
+      chicken.style.bottom = jumpHeight + "px";
+      chicken.style.left = (currentLeft + moveForward) + "px";
+
+      setTimeout(() => {
+        chicken.style.bottom = "60px";
+        setTimeout(() => {
+          isJumping = false;
+        }, 200);
+      }, 300);
+    }
+
+    function spawnHole() {
+      const hole = document.createElement("div");
+      hole.classList.add("hole");
+
+      // Speed logic by difficulty
+      let holeSpeed = 2000;
+      if (score >= 99) holeSpeed = 1200;
+      else if (score >= 49) holeSpeed = 1500;
+
+      hole.style.left = gameArea.offsetWidth + "px";
+      gameArea.appendChild(hole);
+
+      let holeWidth = 50;
+      let leftPos = gameArea.offsetWidth;
+
+      const moveHole = setInterval(() => {
+        leftPos -= 5;
+        hole.style.left = leftPos + "px";
+
+        const chickenLeft = parseInt(chicken.style.left || 10);
+        const holeLeft = leftPos;
+        const holeRight = holeLeft + holeWidth;
+
+        // Collision check
+        if (
+          holeLeft < chickenLeft + 40 &&
+          holeRight > chickenLeft &&
+          parseInt(chicken.style.bottom) <= 60
+        ) {
+          clearInterval(moveHole);
+          gameOver();
+        }
+
+        // Score up
+        if (holeRight < chickenLeft && !hole.scored) {
+          hole.scored = true;
+          score++;
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("highScore", highScore);
+          }
+          updateScore();
+        }
+
+        // Remove hole
+        if (leftPos + holeWidth < 0) {
+          clearInterval(moveHole);
+          gameArea.removeChild(hole);
+        }
+      }, 20);
+    }
+
+    function startSpawning() {
+      holeInterval = setInterval(spawnHole, 2000);
+    }
+
+    function gameOver() {
+      clearInterval(holeInterval);
+      jumpBtn.disabled = true;
+      alert("Game Over!\nFinal Score: " + score);
+    }
+
+    jumpBtn.addEventListener("click", jump);
+    updateScore();
+    startSpawning();
+  </script>
+</body>
+</html>
