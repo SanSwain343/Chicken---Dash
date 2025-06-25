@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dip Dash by San 🏃‍♂️</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }html, body {
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background: #bfeaff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: start;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: 16px;
+  color: #222;
+  text-align: center;
+  margin: 10px 10px 5px 10px;
+  padding: 0 10px;
+}
+
+#score {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+#game {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  height: 55vh;
+  background: linear-gradient(#87ceeb 70%, #333 70%);
+  overflow: hidden;
+  border: 3px solid #222;
+  border-radius: 8px;
+}
+
+#character {
+  position: absolute;
+  bottom: 30px;
+  left: 20px;
+  font-size: 40px;
+}
+
+.dip {
+  position: absolute;
+  bottom: 0;
+  width: 40px;
+  height: 30px;
+  background: #222;
+  animation: moveDip 3s linear forwards;
+}
+
+@keyframes moveDip {
+  0% { left: 100%; }
+  100% { left: -60px; }
+}
+
+#jumpBtn, #restartBtn {
+  margin: 10px;
+  padding: 14px 28px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  width: 80%;
+  max-width: 300px;
+}
+
+#jumpBtn { background: #ffc107; }
+#jumpBtn:hover { background: #ffca2c; }
+
+#restartBtn {
+  background: #ef4444;
+  color: white;
+  display: none;
+}
+#restartBtn:hover { background: #dc2626; }
+
+  </style>
+</head>
+<body>
+  <h1>"If you fall in life, don’t quit — jump back stronger. Even chickens know that." — <b>San</b></h1>
+  <div id="score">Score: 0 | High Score: 0</div>
+  <div id="game">
+    <div id="character">🏃‍♂️</div>
+  </div>
+  <button id="jumpBtn">JUMP!</button>
+  <button id="restartBtn">RESTART</button>  <script>
+    const character = document.getElementById("character");
+    const game = document.getElementById("game");
+    const scoreDisplay = document.getElementById("score");
+    const jumpBtn = document.getElementById("jumpBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let isJumping = false;
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
+    character.style.left = "20px";
+
+    function updateScore() {
+      score++;
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("highScore", highScore);
+      }
+      scoreDisplay.innerText = `Score: ${score} | High Score: ${highScore}`;
+    }
+
+    jumpBtn.addEventListener("click", () => {
+      if (isJumping) return;
+      isJumping = true;
+
+      character.style.transition = "bottom 0.3s, left 0.3s";
+      character.style.bottom = "120px";
+      character.style.left = (parseInt(character.style.left) + 40) + "px";
+
+      setTimeout(() => {
+        character.style.bottom = "30px";
+        setTimeout(() => { isJumping = false; }, 300);
+      }, 300);
+    });
+
+    function createDip() {
+      const dip = document.createElement("div");
+      dip.classList.add("dip");
+      game.appendChild(dip);
+
+      const dipInterval = setInterval(() => {
+        const dipLeft = parseInt(window.getComputedStyle(dip).getPropertyValue("left"));
+        const characterLeft = parseInt(window.getComputedStyle(character).getPropertyValue("left"));
+        const characterBottom = parseInt(window.getComputedStyle(character).getPropertyValue("bottom"));
+
+        if (
+          dipLeft < characterLeft + 40 &&
+          dipLeft > characterLeft - 40 &&
+          characterBottom < 50
+        ) {
+          clearInterval(dipInterval);
+          gameOver();
+        }
+
+        if (dipLeft <= characterLeft - 60) {
+          clearInterval(dipInterval);
+          if (game.contains(dip)) game.removeChild(dip);
+          updateScore();
+        }
+      }, 10);
+    }
+
+    function gameOver() {
+      alert(`😢 Game Over! Your Score: ${score}`);
+      jumpBtn.style.display = "none";
+      restartBtn.style.display = "inline-block";
+    }
+
+    restartBtn.addEventListener("click", () => {
+      location.reload();
+    });
+
+    setInterval(createDip, 2000);
+    scoreDisplay.innerText = `Score: ${score} | High Score: ${highScore}`;
+  </script></body>
+</html>
