@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chicken Dash</title>
+  <style>
+    body {
+      background-color: #b3e5fc;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    h2 {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    #gameCanvas {
+      background-color: #81d4fa;
+      border: 4px solid #333;
+      display: block;
+      margin: 20px auto;
+    }
+    #scoreboard {
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    .button-container {
+      margin-top: 20px;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      margin: 10px;
+      background-color: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h2>"If you fall in life, don’t quit — jump back stronger. Even chickens know that." — San</h2>
+  <div id="scoreboard">Score: 0 | High Score: 0</div>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+  <div class="button-container">
+    <button onclick="jump()">JUMP</button>
+    <button onclick="restartGame()">RESTART</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let chicken = { x: 50, y: 300, width: 40, height: 40, velocityY: 0, jumpStrength: 10 };
+    let gravity = 0.6;
+    let isJumping = false;
+    let dips = [];
+    let score = 0;
+    let highScore = 0;
+    let gameOver = false;
+    let gap = 200;
+
+    function getDifficulty(score) {
+      if (score < 50) return { speed: 2, width: 40 };
+      if (score < 100) return { speed: 3, width: 45 };
+      return { speed: 4, width: 50 }; // Hard but fair
+    }
+
+    function createDip() {
+      const { width } = getDifficulty(score);
+      dips.push({ x: canvas.width, width });
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      chicken.velocityY += gravity;
+      chicken.y += chicken.velocityY;
+      if (chicken.y > 300) {
+        chicken.y = 300;
+        isJumping = false;
+      }
+
+      const { speed } = getDifficulty(score);
+
+      dips.forEach(dip => {
+        dip.x -= speed;
+      });
+
+      if (dips.length && dips[0].x + dips[0].width < 0) {
+        dips.shift();
+        score++;
+        highScore = Math.max(score, highScore);
+        document.getElementById("scoreboard").textContent = `Score: ${score} | High Score: ${highScore}`;
+      }
+
+      dips.forEach(dip => {
+        if (
+          chicken.x < dip.x + dip.width &&
+          chicken.x + chicken.width > dip.x &&
+          chicken.y + chicken.height > 340
+        ) {
+          gameOver = true;
+        }
+      });
+
+      if (chicken.y + chicken.height > canvas.height) gameOver = true;
+
+      if (!gameOver && (dips.length === 0 || dips[dips.length - 1].x < gap)) {
+        createDip();
+      }
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#333";
+      ctx.fillRect(0, 340, canvas.width, 60);
+
+      ctx.fillStyle = "black";
+      dips.forEach(dip => {
+        ctx.fillRect(dip.x, 340, dip.width, 60);
+      });
+
+      ctx.font = "30px Arial";
+      ctx.fillText("🐔", chicken.x, chicken.y);
+    }
+
+    function jump() {
+      if (!isJumping && !gameOver) {
+        chicken.velocityY = -chicken.jumpStrength;
+        isJumping = true;
+      }
+    }
+
+    function restartGame() {
+      chicken.y = 300;
+      chicken.velocityY = 0;
+      score = 0;
+      dips = [];
+      gameOver = false;
+      document.getElementById("scoreboard").textContent = `Score: ${score} | High Score: ${highScore}`;
+      update();
+    }
+
+    restartGame();
+  </script>
+</body>
+</html>
