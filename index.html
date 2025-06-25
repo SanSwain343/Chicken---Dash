@@ -1,0 +1,163 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chicken Dash</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial';
+      background: #c6f0ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+    h2 {
+      text-align: center;
+      padding: 10px;
+      font-size: 18px;
+    }
+    #game {
+      width: 95vw;
+      max-width: 400px;
+      height: 60vh;
+      border: 3px solid #444;
+      position: relative;
+      overflow: hidden;
+      background: #87cefa;
+    }
+    #road {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 80px;
+      background: #333;
+    }
+    #chicken {
+      position: absolute;
+      bottom: 80px;
+      left: 10px;
+      font-size: 40px;
+      transition: bottom 0.3s ease, left 0.3s ease;
+    }
+    .hole {
+      position: absolute;
+      bottom: 0;
+      width: 40px;
+      height: 80px;
+      background: #111;
+    }
+    #scoreboard {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    #restartBtn {
+      margin-top: 20px;
+      background: #f44336;
+      color: white;
+      font-size: 20px;
+      padding: 10px 30px;
+      border: none;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>"If you fall in life, don’t quit — jump back stronger. Even chickens know that." — San</h2>
+  <div id="scoreboard">Score: 0 | High Score: 0</div>
+  <div id="game">
+    <div id="chicken">🐔</div>
+    <div id="road"></div>
+  </div>
+  <button id="restartBtn">RESTART</button>  <script>
+    const game = document.getElementById("game");
+    const chicken = document.getElementById("chicken");
+    const scoreboard = document.getElementById("scoreboard");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
+    let isJumping = false;
+    let gameOver = false;
+
+    scoreboard.innerText = `Score: ${score} | High Score: ${highScore}`;
+
+    function jump() {
+      if (isJumping || gameOver) return;
+      isJumping = true;
+      chicken.style.bottom = "180px";
+      chicken.style.left = `${parseInt(chicken.style.left || 10) + 30}px`;
+      setTimeout(() => {
+        chicken.style.bottom = "80px";
+        setTimeout(() => (isJumping = false), 300);
+      }, 300);
+    }
+
+    function createHole() {
+      const hole = document.createElement("div");
+      hole.classList.add("hole");
+      game.appendChild(hole);
+      let holeLeft = game.offsetWidth;
+
+      // Difficulty scaling by score
+      let speed = 4;
+      if (score > 49) speed = 6;
+      if (score > 98) speed = 8;
+
+      const moveInterval = setInterval(() => {
+        if (gameOver) {
+          clearInterval(moveInterval);
+          hole.remove();
+          return;
+        }
+        holeLeft -= speed;
+        hole.style.left = holeLeft + "px";
+
+        // Collision check
+        const chickenLeft = parseInt(chicken.style.left || 10);
+        const holeCenter = holeLeft + 20;
+        const inRange = chickenLeft + 30 > holeLeft && chickenLeft < holeLeft + 40;
+        const isLow = parseInt(chicken.style.bottom) <= 85;
+
+        if (inRange && isLow) {
+          endGame();
+        }
+
+        if (holeLeft + 40 < 0) {
+          hole.remove();
+          score++;
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("highScore", highScore);
+          }
+          scoreboard.innerText = `Score: ${score} | High Score: ${highScore}`;
+        }
+      }, 20);
+    }
+
+    function endGame() {
+      gameOver = true;
+      alert("Oops! Game Over. Score: " + score);
+    }
+
+    function resetGame() {
+      score = 0;
+      gameOver = false;
+      scoreboard.innerText = `Score: ${score} | High Score: ${highScore}`;
+      chicken.style.left = "10px";
+      chicken.style.bottom = "80px";
+      document.querySelectorAll(".hole").forEach((h) => h.remove());
+    }
+
+    // Spawn holes repeatedly
+    setInterval(() => {
+      if (!gameOver) createHole();
+    }, 2000);
+
+    // Tap jump
+    game.addEventListener("click", jump);
+    restartBtn.addEventListener("click", resetGame);
+  </script></body>
+</html>
