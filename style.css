@@ -1,0 +1,60 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #b3e5fc;
+}
+
+.quote {
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 10px;
+}
+
+.scoreboard {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+#gameContainer {
+  width: 90vw;
+  height: 60vh;
+  margin: 0 auto;
+  border: 3px solid #333;
+  background-color: #81d4fa;
+  position: relative;
+  overflow: hidden;
+}
+
+#chicken {
+  position: absolute;
+  bottom: 50px;
+  left: 20px;
+  font-size: 40px;
+  transition: bottom 0.3s, left 0.3s;
+}
+
+#hole {
+  position: absolute;
+  bottom: 0;
+  width: 50px;
+  height: 50px;
+  background: black;
+  left: 100%;
+}
+
+.controls {
+  margin-top: 20px;
+}
+
+button {
+  padding: 15px 30px;
+  font-size: 18px;
+  margin: 10px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
